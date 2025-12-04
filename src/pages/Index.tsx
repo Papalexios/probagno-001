@@ -1,13 +1,26 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Helmet } from 'react-helmet-async';
+import { Layout } from '@/components/layout/Layout';
+import { HeroSection } from '@/components/home/HeroSection';
+import { FeaturedProducts } from '@/components/home/FeaturedProducts';
+import { BrandStory } from '@/components/home/BrandStory';
+import { ProjectsShowcase } from '@/components/home/ProjectsShowcase';
+import { Newsletter } from '@/components/home/Newsletter';
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <>
+      <Helmet>
+        <title>PROBAGNO | Έπιπλα Μπάνιου Υψηλής Αισθητικής από το 1974</title>
+        <meta name="description" content="Με 50+ χρόνια εμπειρίας στον σχεδιασμό και κατασκευή επίπλων μπάνιου, η PROBAGNO αποτελεί συνώνυμο ποιότητας και αισθητικής. Ανακαλύψτε τη συλλογή μας." />
+      </Helmet>
+      <Layout>
+        <HeroSection />
+        <FeaturedProducts />
+        <BrandStory />
+        <ProjectsShowcase />
+        <Newsletter />
+      </Layout>
+    </>
   );
 };
 
