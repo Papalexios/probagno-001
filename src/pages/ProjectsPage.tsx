@@ -2,78 +2,70 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { Layout } from '@/components/layout/Layout';
-import { ArrowRight, MapPin, Calendar, Maximize2 } from 'lucide-react';
+import { ArrowRight, MapPin, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import heroImage from '@/assets/hero-bathroom.jpg';
+import { Link } from 'react-router-dom';
+
+// Import project images
+import monastiraki1 from '@/assets/projects/monastiraki-1.jpg';
+import monastiraki2 from '@/assets/projects/monastiraki-2.jpg';
+import hydra1 from '@/assets/projects/hydra-1.jpg';
+import hydra2 from '@/assets/projects/hydra-2.jpg';
+import glyfada1 from '@/assets/projects/glyfada-1.jpg';
+import lagonisi1 from '@/assets/projects/lagonisi-1.jpg';
+import mykonos1 from '@/assets/projects/mykonos-1.jpg';
+import mykonos2 from '@/assets/projects/mykonos-2.jpg';
 
 const projects = [
   {
     id: 1,
-    title: 'Πολυτελές Penthouse Γλυφάδα',
-    location: 'Γλυφάδα, Αθήνα',
-    year: '2024',
-    description: 'Ολοκληρωμένη ανακαίνιση 3 μπάνιων με έπιπλα της σειράς 963 και 975. Μασίφ δρυς και Swiss Krono φινιρίσματα.',
+    title: 'Μοναστηράκι',
+    location: 'Αθήνα',
+    description: 'Πολυτελής ανακαίνιση μπάνιου σε ιστορικό κτίριο στο κέντρο της Αθήνας. Συνδυασμός μοντέρνου design με κλασικά στοιχεία.',
     category: 'Κατοικία',
-    image: heroImage,
-    products: ['963-963Κ', '975', 'Square Sink'],
+    images: [monastiraki1, monastiraki2],
   },
   {
     id: 2,
-    title: 'Boutique Hotel Μύκονος',
-    location: 'Μύκονος',
-    year: '2024',
-    description: 'Εξοπλισμός 12 δωματίων με έπιπλα μπάνιου της σειράς 970-972. Λευκό γυαλιστερό φινίρισμα.',
-    category: 'Ξενοδοχείο',
-    image: heroImage,
-    products: ['970-971-972', 'Chic Sink', 'LED Mirrors'],
+    title: 'Ύδρα',
+    location: 'Ύδρα',
+    description: 'Νησιωτική κατοικία με μίνιμαλ αισθητική. Έπιπλα μπάνιου σε λευκό γυαλιστερό που αντανακλούν το φως του Αιγαίου.',
+    category: 'Villa',
+    images: [hydra1, hydra2],
   },
   {
     id: 3,
-    title: 'Μοντέρνα Κατοικία Κηφισιά',
-    location: 'Κηφισιά, Αθήνα',
-    year: '2023',
-    description: 'Master bathroom με έπιπλο 973 σε ανθρακί και δευτερεύον μπάνιο με 978.',
+    title: 'Γλυφάδα',
+    location: 'Γλυφάδα, Αθήνα',
+    description: 'Μοντέρνο διαμέρισμα στα νότια προάστια. Premium έπιπλα μπάνιου με LED καθρέπτες και custom λύσεις αποθήκευσης.',
     category: 'Κατοικία',
-    image: heroImage,
-    products: ['973', '978', 'Square Sink Black'],
+    images: [glyfada1],
   },
   {
     id: 4,
-    title: 'Spa Resort Χαλκιδική',
-    location: 'Χαλκιδική',
-    year: '2023',
-    description: 'Εξοπλισμός χώρων spa με έπιπλα από μασίφ δρυς. 8 μονάδες 975 και custom καθρέπτες.',
-    category: 'Spa',
-    image: heroImage,
-    products: ['975', 'Custom Mirrors', 'Vega Sinks'],
+    title: 'Λαγονήσι',
+    location: 'Λαγονήσι, Αττική',
+    description: 'Παραθαλάσσια κατοικία με σύγχρονο σχεδιασμό. Ανθεκτικά υλικά ιδανικά για το θαλασσινό περιβάλλον.',
+    category: 'Villa',
+    images: [lagonisi1],
   },
   {
     id: 5,
-    title: 'Διαμέρισμα Airbnb Πλάκα',
-    location: 'Πλάκα, Αθήνα',
-    year: '2023',
-    description: 'Compact λύση με έπιπλο 969 για μικρό χώρο. Μέγιστη αξιοποίηση με minimal budget.',
-    category: 'Airbnb',
-    image: heroImage,
-    products: ['969', 'Suite Sink'],
-  },
-  {
-    id: 6,
-    title: 'Villa Σαντορίνη',
-    location: 'Σαντορίνη',
-    year: '2024',
-    description: 'Πλήρης εξοπλισμός 5 μπάνιων luxury villa. Λευκά φινιρίσματα σε αρμονία με την κυκλαδίτικη αρχιτεκτονική.',
+    title: 'Μύκονος',
+    location: 'Μύκονος',
+    description: 'Luxury villa στη Μύκονο με πολλαπλά μπάνια. Λευκά έπιπλα σε αρμονία με την κυκλαδίτικη αρχιτεκτονική.',
     category: 'Villa',
-    image: heroImage,
-    products: ['950', '951-942Κ', 'Hera Sinks'],
+    images: [mykonos1, mykonos2],
   },
 ];
 
-const categories = ['Όλα', 'Κατοικία', 'Ξενοδοχείο', 'Spa', 'Villa', 'Airbnb'];
+const categories = ['Όλα', 'Κατοικία', 'Villa', 'Ξενοδοχείο'];
 
 export default function ProjectsPage() {
   const [selectedCategory, setSelectedCategory] = useState('Όλα');
+  const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const filteredProjects = selectedCategory === 'Όλα' 
     ? projects 
@@ -83,14 +75,14 @@ export default function ProjectsPage() {
     <Layout>
       <Helmet>
         <title>Έργα | PROBAGNO - Έπιπλα Μπάνιου</title>
-        <meta name="description" content="Δείτε τα έργα μας σε ξενοδοχεία, κατοικίες, spa και villas σε όλη την Ελλάδα. Ποιοτικές λύσεις επίπλων μπάνιου." />
+        <meta name="description" content="Δείτε τα έργα μας σε Μοναστηράκι, Ύδρα, Γλυφάδα, Λαγονήσι και Μύκονο. Πολυτελή έπιπλα μπάνιου σε κατοικίες και villas." />
       </Helmet>
 
       {/* Hero Section */}
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src={heroImage} 
+            src={monastiraki1} 
             alt="PROBAGNO Projects" 
             className="w-full h-full object-cover"
           />
@@ -103,7 +95,7 @@ export default function ProjectsPage() {
             transition={{ duration: 0.8 }}
             className="font-display text-5xl md:text-7xl font-bold mb-6"
           >
-            Τα Έργα μας
+            Έργα
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -111,7 +103,7 @@ export default function ProjectsPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl text-muted-foreground max-w-2xl mx-auto"
           >
-            50 χρόνια εμπειρίας σε κατοικίες, ξενοδοχεία και επαγγελματικούς χώρους
+            50 χρόνια εμπειρίας σε κατοικίες, ξενοδοχεία και villas σε όλη την Ελλάδα
           </motion.p>
         </div>
       </section>
@@ -149,9 +141,15 @@ export default function ProjectsPage() {
               >
                 <Dialog>
                   <DialogTrigger asChild>
-                    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer mb-4">
+                    <div 
+                      className="relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer mb-4"
+                      onClick={() => {
+                        setSelectedProject(project);
+                        setSelectedImageIndex(0);
+                      }}
+                    >
                       <img 
-                        src={project.image} 
+                        src={project.images[0]} 
                         alt={project.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
@@ -167,38 +165,51 @@ export default function ProjectsPage() {
                           {project.category}
                         </span>
                       </div>
+                      {project.images.length > 1 && (
+                        <div className="absolute top-4 right-4">
+                          <span className="px-2 py-1 bg-background/80 text-foreground text-xs rounded-full">
+                            {project.images.length} φωτογραφίες
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </DialogTrigger>
-                  <DialogContent className="max-w-3xl">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <img 
-                        src={project.image} 
-                        alt={project.title}
-                        className="w-full h-64 md:h-full object-cover rounded-lg"
-                      />
-                      <div className="space-y-4">
+                  <DialogContent className="max-w-4xl">
+                    <div className="space-y-4">
+                      {/* Main Image */}
+                      <div className="relative aspect-video rounded-lg overflow-hidden">
+                        <img 
+                          src={project.images[selectedImageIndex]} 
+                          alt={project.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      
+                      {/* Thumbnails */}
+                      {project.images.length > 1 && (
+                        <div className="flex gap-2 overflow-x-auto pb-2">
+                          {project.images.map((img, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setSelectedImageIndex(idx)}
+                              className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
+                                selectedImageIndex === idx ? 'border-primary' : 'border-transparent'
+                              }`}
+                            >
+                              <img src={img} alt="" className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Info */}
+                      <div className="space-y-3">
                         <h3 className="font-display text-2xl font-bold">{project.title}</h3>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" />
-                            {project.location}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {project.year}
-                          </span>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="w-4 h-4" />
+                          {project.location}
                         </div>
                         <p className="text-muted-foreground">{project.description}</p>
-                        <div>
-                          <h4 className="font-semibold mb-2">Προϊόντα που χρησιμοποιήθηκαν:</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {project.products.map((product) => (
-                              <span key={product} className="px-3 py-1 bg-muted rounded-full text-sm">
-                                {product}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </DialogContent>
@@ -206,15 +217,9 @@ export default function ProjectsPage() {
                 <h3 className="font-display text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                   {project.title}
                 </h3>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {project.location}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    {project.year}
-                  </span>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <MapPin className="w-4 h-4" />
+                  {project.location}
                 </div>
               </motion.article>
             ))}
@@ -236,9 +241,11 @@ export default function ProjectsPage() {
             <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-8">
               Επικοινωνήστε μαζί μας για εξατομικευμένη προσφορά για το δικό σας έργο.
             </p>
-            <Button variant="secondary" size="lg" className="gap-2">
-              Επικοινωνία <ArrowRight className="w-5 h-5" />
-            </Button>
+            <Link to="/contact">
+              <Button variant="secondary" size="lg" className="gap-2">
+                Επικοινωνία <ArrowRight className="w-5 h-5" />
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>

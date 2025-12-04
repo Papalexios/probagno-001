@@ -10,6 +10,7 @@ const navigation = [
   { name: 'Αρχική', href: '/' },
   { name: 'Προϊόντα', href: '/products' },
   { name: 'Έργα', href: '/projects' },
+  { name: 'Κατάλογος', href: '/catalog' },
   { name: 'Probagno', href: '/about' },
   { name: 'Επικοινωνία', href: '/contact' },
 ];

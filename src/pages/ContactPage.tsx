@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { Layout } from '@/components/layout/Layout';
-import { Phone, Mail, MapPin, Clock, Send, Building2 } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, Send, Building2, Facebook, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,17 +18,17 @@ const contactInfo = [
   {
     icon: Mail,
     title: 'Email',
-    lines: ['info@probagno.gr', 'sales@probagno.gr'],
+    lines: ['info@probagno.gr'],
   },
   {
     icon: MapPin,
     title: 'Διεύθυνση',
-    lines: ['Αθήνα, Ελλάδα'],
+    lines: ['2ο χλμ Λεωφόρος Κορωπίου-Βάρης', 'Τ.Θ. 25 - ΤΚ 19400 - Κορωπί'],
   },
   {
     icon: Clock,
     title: 'Ωράριο',
-    lines: ['Δευτέρα - Παρασκευή: 09:00 - 17:00', 'Σάββατο: 10:00 - 14:00'],
+    lines: ['Δευτέρα - Παρασκευή: 08:00 - 16:00', 'Σάββατο: Κλειστά'],
   },
 ];
 
@@ -69,8 +69,8 @@ export default function ContactPage() {
   return (
     <Layout>
       <Helmet>
-        <title>Επικοινωνία | PROBAGNO - Έπιπλα Μπάνιου</title>
-        <meta name="description" content="Επικοινωνήστε με την PROBAGNO. Τηλ: 210 6622215, 210 6622218. Email: info@probagno.gr. Έπιπλα μπάνιου υψηλής ποιότητας." />
+        <title>Επικοινωνία | PROBAGNO - Έπιπλα Μπάνιου Κορωπί</title>
+        <meta name="description" content="PROBAGNO - STEFANOS PANOUSSOS & CO E.E. Τηλ: 210 6622215, 210 6622218. 2ο χλμ Λεωφόρος Κορωπίου-Βάρης, Κορωπί 194 00. Έπιπλα μπάνιου υψηλής ποιότητας." />
       </Helmet>
 
       {/* Hero Section */}
@@ -86,8 +86,8 @@ export default function ContactPage() {
               Επικοινωνία
             </h1>
             <p className="text-xl text-muted-foreground">
-              Είμαστε εδώ για να απαντήσουμε σε κάθε ερώτησή σας και να σας βοηθήσουμε 
-              να βρείτε την ιδανική λύση για το μπάνιο σας.
+              PROBAGNO - STEFANOS PANOUSSOS & CO E.E.<br />
+              Είμαστε εδώ για να απαντήσουμε σε κάθε ερώτησή σας.
             </p>
           </motion.div>
         </div>
@@ -109,7 +109,7 @@ export default function ContactPage() {
                 <info.icon className="w-10 h-10 text-primary mb-4" />
                 <h3 className="font-semibold text-lg mb-2">{info.title}</h3>
                 {info.lines.map((line, i) => (
-                  <p key={i} className="text-muted-foreground">{line}</p>
+                  <p key={i} className="text-muted-foreground text-sm">{line}</p>
                 ))}
               </motion.div>
             ))}
@@ -197,9 +197,34 @@ export default function ContactPage() {
                   {isSubmitting ? 'Αποστολή...' : 'Αποστολή Μηνύματος'}
                 </Button>
               </form>
+
+              {/* Social Links */}
+              <div className="mt-8 pt-8 border-t border-border">
+                <h3 className="font-semibold mb-4">Ακολουθήστε μας</h3>
+                <div className="flex gap-4">
+                  <a 
+                    href="https://www.facebook.com/Probagno" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#1877F2] text-white rounded-lg hover:bg-[#1877F2]/90 transition-colors"
+                  >
+                    <Facebook className="w-5 h-5" />
+                    Facebook
+                  </a>
+                  <a 
+                    href="https://www.instagram.com/probagno" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] text-white rounded-lg hover:opacity-90 transition-opacity"
+                  >
+                    <Instagram className="w-5 h-5" />
+                    Instagram
+                  </a>
+                </div>
+              </div>
             </motion.div>
 
-            {/* Map Placeholder */}
+            {/* Map */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -213,15 +238,27 @@ export default function ContactPage() {
                 </h2>
                 <div className="aspect-video bg-muted rounded-2xl overflow-hidden">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3143.5!2d23.7!3d37.9!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzfCsDU0JzAwLjAiTiAyM8KwNDInMDAuMCJF!5e0!3m2!1sen!2sgr!4v1234567890"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3148.4138738866567!2d23.87308841531878!3d37.89983697973859!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14a1976b1c7d7c17%3A0x7d72c6c3f3d3e0e0!2sPROBAGNO%20-%20STEFANOS%20PANOUSSOS%20%26%20CO%20E.E.!5e0!3m2!1sen!2sgr!4v1701234567890!5m2!1sen!2sgr"
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
                     allowFullScreen
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
-                    title="PROBAGNO Location"
+                    title="PROBAGNO Location - 2ο χλμ Λεωφόρος Κορωπίου-Βάρης, Κορωπί"
                   />
+                </div>
+                <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+                  <p className="font-semibold">PROBAGNO - STEFANOS PANOUSSOS & CO E.E.</p>
+                  <p className="text-sm text-muted-foreground">2ο Χλμ Λεωφόρος Κορωπίου-Βάρης, Koropi 194 00</p>
+                  <a 
+                    href="https://www.google.com/maps/dir//PROBAGNO+-+STEFANOS+PANOUSSOS+%26+CO+E.E.,+2o+Xlm+Leof.+Koropiou-Varis,+Koropi+194+00/@37.8998369,23.8730884,17z"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary text-sm hover:underline mt-2 inline-block"
+                  >
+                    Οδηγίες πρόσβασης →
+                  </a>
                 </div>
               </div>
 

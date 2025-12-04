@@ -38,6 +38,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/catalog" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm">
+                  Κατάλογος
+                </Link>
+              </li>
+              <li>
                 <Link to="/about" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm">
                   Η Εταιρεία
                 </Link>
@@ -65,13 +70,13 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/products?category=cabinets" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm">
-                  Ντουλάπια
+                <Link to="/products?category=sinks" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm">
+                  Νιπτήρες
                 </Link>
               </li>
               <li>
-                <Link to="/products?category=accessories" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm">
-                  Αξεσουάρ
+                <Link to="/products?category=cabinets" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm">
+                  Κολώνες & Ντουλάπια
                 </Link>
               </li>
             </ul>
@@ -97,16 +102,29 @@ export function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 mt-1 text-gold" />
                 <p className="text-primary-foreground/70 text-sm">
-                  Αθήνα, Ελλάδα
+                  2ο χλμ Λεωφόρος Κορωπίου-Βάρης<br />
+                  Κορωπί 194 00
                 </p>
               </li>
             </ul>
             
             <div className="flex gap-4 mt-6">
-              <a href="#" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors">
+              <a 
+                href="https://www.facebook.com/Probagno" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-[#1877F2] transition-colors"
+                aria-label="Facebook"
+              >
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors">
+              <a 
+                href="https://www.instagram.com/probagno" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-gradient-to-r hover:from-[#833AB4] hover:via-[#FD1D1D] hover:to-[#F77737] transition-colors"
+                aria-label="Instagram"
+              >
                 <Instagram className="w-5 h-5" />
               </a>
             </div>
@@ -115,7 +133,7 @@ export function Footer() {
 
         <div className="border-t border-primary-foreground/10 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-primary-foreground/50 text-sm">
-            © {new Date().getFullYear()} PROBAGNO. Με επιφύλαξη παντός δικαιώματος.
+            © {new Date().getFullYear()} PROBAGNO - STEFANOS PANOUSSOS & CO E.E. Με επιφύλαξη παντός δικαιώματος.
           </p>
           <div className="flex gap-6">
             <Link to="/privacy" className="text-primary-foreground/50 hover:text-primary-foreground/70 text-sm transition-colors">
