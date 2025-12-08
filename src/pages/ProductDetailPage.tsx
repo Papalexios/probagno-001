@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ShoppingBag, Heart, Share2, Truck, Shield, RotateCcw, Check } from 'lucide-react';
+import { ChevronLeft, ShoppingBag, Heart, Share2, Truck, Shield, RotateCcw, Check, Loader2 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
-import { useProductStore } from '@/store/productStore';
+import { useProductBySlug, useProductsQuery } from '@/hooks/useProducts';
 import { useCartStore } from '@/store/cartStore';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -16,12 +16,27 @@ import { cn } from '@/lib/utils';
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { getProductBySlug, products } = useProductStore();
+  const { data: product, isLoading } = useProductBySlug(slug || '');
+  const { data: products = [] } = useProductsQuery();
   const { addItem } = useCartStore();
-  const product = getProductBySlug(slug || '');
 
-  const [selectedDimensionId, setSelectedDimensionId] = useState(product?.dimensions[0]?.id || '');
+  const [selectedDimensionId, setSelectedDimensionId] = useState('');
   const [quantity, setQuantity] = useState(1);
+
+  // Set initial dimension when product loads
+  if (product && !selectedDimensionId && product.dimensions[0]) {
+    setSelectedDimensionId(product.dimensions[0].id);
+  }
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-20 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (!product) {
     return (

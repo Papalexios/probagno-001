@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, Grid3X3, LayoutGrid, X, ChevronDown } from 'lucide-react';
+import { Search, SlidersHorizontal, Grid3X3, LayoutGrid, X, ChevronDown, Loader2 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { ProductCard } from '@/components/products/ProductCard';
-import { useProductStore } from '@/store/productStore';
+import { useProductsQuery, useCategoriesQuery } from '@/hooks/useProducts';
 import { productTypes, productMaterials } from '@/data/products';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { cn } from '@/lib/utils';
 
 export default function ProductsPage() {
-  const { products, categories } = useProductStore();
+  const { data: products = [], isLoading } = useProductsQuery();
+  const { data: categories = [] } = useCategoriesQuery();
   const [search, setSearch] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState([0, 3000]);
