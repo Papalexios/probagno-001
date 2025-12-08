@@ -144,8 +144,36 @@ export function useProductsQuery() {
   return query;
 }
 
-// Fetch single product by slug
+// Fetch single product by slug with real-time updates
 export function useProductBySlug(slug: string) {
+  const queryClient = useQueryClient();
+
+  // Set up real-time subscription for this specific product
+  useEffect(() => {
+    if (!slug) return;
+
+    const channel = supabase
+      .channel(`product-${slug}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'products',
+          filter: `slug=eq.${slug}`,
+        },
+        (payload) => {
+          console.log('Product change detected:', payload);
+          queryClient.invalidateQueries({ queryKey: ['product', slug] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [slug, queryClient]);
+
   return useQuery({
     queryKey: ['product', slug],
     queryFn: async (): Promise<Product | null> => {
@@ -167,6 +195,7 @@ export function useProductBySlug(slug: string) {
       return toAppProduct(data as unknown as DbProduct);
     },
     enabled: !!slug,
+    staleTime: 0,
   });
 }
 
