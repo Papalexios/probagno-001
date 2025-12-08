@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit, Trash2, Eye, MoreVertical, Package, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, MoreVertical, Package, Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { useProductsQuery, useCategoriesQuery, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/useProducts';
 import { useAuth } from '@/contexts/AuthContext';
-import { Product } from '@/types/product';
+import { Product, ProductImage } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +34,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AdminProducts() {
   const { data: products = [], isLoading } = useProductsQuery();
@@ -279,6 +280,206 @@ export default function AdminProducts() {
   );
 }
 
+// Image Upload Component
+interface ImageUploadSectionProps {
+  images: ProductImage[];
+  onImagesChange: (images: ProductImage[]) => void;
+}
+
+function ImageUploadSection({ images, onImagesChange }: ImageUploadSectionProps) {
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const newImages: ProductImage[] = [...images];
+
+    try {
+      for (const file of Array.from(files)) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          toast.error(`Το αρχείο ${file.name} δεν είναι εικόνα`);
+          continue;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`Το αρχείο ${file.name} είναι πολύ μεγάλο (max 5MB)`);
+          continue;
+        }
+
+        // Generate unique filename
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `products/${fileName}`;
+
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file);
+
+        if (error) {
+          console.error('Upload error:', error);
+          toast.error(`Αποτυχία upload: ${file.name}`);
+          continue;
+        }
+
+        // Get public URL
+        const { data: publicUrlData } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        const imageUrl = publicUrlData.publicUrl;
+
+        newImages.push({
+          id: crypto.randomUUID(),
+          url: imageUrl,
+          alt: file.name.replace(/\.[^/.]+$/, ''),
+          isPrimary: newImages.length === 0, // First image is primary
+        });
+      }
+
+      onImagesChange(newImages);
+      toast.success('Οι εικόνες ανέβηκαν επιτυχώς');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Σφάλμα κατά το upload');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveImage = async (imageId: string) => {
+    const imageToRemove = images.find(img => img.id === imageId);
+    if (imageToRemove && imageToRemove.url.includes('product-images')) {
+      // Extract file path from URL and delete from storage
+      try {
+        const urlParts = imageToRemove.url.split('/product-images/');
+        if (urlParts[1]) {
+          await supabase.storage.from('product-images').remove([urlParts[1]]);
+        }
+      } catch (error) {
+        console.error('Failed to delete from storage:', error);
+      }
+    }
+    
+    const newImages = images.filter(img => img.id !== imageId);
+    // If we removed the primary image, make the first remaining image primary
+    if (imageToRemove?.isPrimary && newImages.length > 0) {
+      newImages[0].isPrimary = true;
+    }
+    onImagesChange(newImages);
+  };
+
+  const handleSetPrimary = (imageId: string) => {
+    const newImages = images.map(img => ({
+      ...img,
+      isPrimary: img.id === imageId
+    }));
+    onImagesChange(newImages);
+  };
+
+  return (
+    <div className="space-y-4">
+      <Label className="flex items-center gap-2">
+        <ImageIcon className="w-4 h-4" />
+        Εικόνες Προϊόντος
+      </Label>
+      
+      {/* Image Grid */}
+      {images.length > 0 && (
+        <div className="grid grid-cols-4 gap-3">
+          {images.map((image) => (
+            <div 
+              key={image.id} 
+              className={cn(
+                "relative group aspect-square rounded-lg overflow-hidden border-2 transition-all",
+                image.isPrimary ? "border-primary ring-2 ring-primary/20" : "border-border"
+              )}
+            >
+              <img
+                src={image.url}
+                alt={image.alt}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                {!image.isPrimary && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleSetPrimary(image.id)}
+                    title="Ορισμός ως κύρια"
+                  >
+                    ★
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleRemoveImage(image.id)}
+                  title="Διαγραφή"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              {image.isPrimary && (
+                <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded">
+                  Κύρια
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Upload Button */}
+      <div className="flex items-center gap-4">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFileUpload}
+          className="hidden"
+          id="image-upload"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="flex items-center gap-2"
+        >
+          {uploading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Ανέβασμα...
+            </>
+          ) : (
+            <>
+              <Upload className="w-4 h-4" />
+              Ανέβασμα Εικόνων
+            </>
+          )}
+        </Button>
+        <span className="text-sm text-muted-foreground">
+          Υποστηριζόμενες μορφές: JPG, PNG, WebP (max 5MB)
+        </span>
+      </div>
+    </div>
+  );
+}
+
 interface ProductEditDialogProps {
   product: Product | null;
   categories: { id: string; name: string; slug: string }[];
@@ -422,6 +623,12 @@ function ProductEditDialog({ product, categories, open, onClose, onSave, isLoadi
               rows={3}
             />
           </div>
+
+          {/* Image Upload Section */}
+          <ImageUploadSection
+            images={formData.images || []}
+            onImagesChange={(images) => setFormData({ ...formData, images })}
+          />
 
           <div className="space-y-2">
             <Label>Χρώματα (διαχωρισμένα με κόμμα)</Label>
