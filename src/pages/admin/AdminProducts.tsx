@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit, Trash2, Eye, MoreVertical, Package } from 'lucide-react';
-import { useProductStore } from '@/store/productStore';
+import { Plus, Search, Edit, Trash2, Eye, MoreVertical, Package, Loader2 } from 'lucide-react';
+import { useProductsQuery, useCategoriesQuery, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/useProducts';
+import { useAuth } from '@/contexts/AuthContext';
 import { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +36,13 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export default function AdminProducts() {
-  const { products, updateProduct, deleteProduct, addProduct } = useProductStore();
+  const { data: products = [], isLoading } = useProductsQuery();
+  const { data: categories = [] } = useCategoriesQuery();
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
+  const deleteProductMutation = useDeleteProduct();
+  const { isAdmin } = useAuth();
+  
   const [search, setSearch] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -47,23 +54,39 @@ export default function AdminProducts() {
       p.nameEn.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSave = (product: Product) => {
-    if (editingProduct) {
-      updateProduct(product.id, product);
-      toast.success('Το προϊόν ενημερώθηκε επιτυχώς');
-    } else {
-      addProduct(product);
-      toast.success('Το προϊόν δημιουργήθηκε επιτυχώς');
+  const handleSave = async (product: Product) => {
+    try {
+      if (editingProduct) {
+        await updateProduct.mutateAsync({ id: product.id, updates: product });
+        toast.success('Το προϊόν ενημερώθηκε επιτυχώς');
+      } else {
+        await createProduct.mutateAsync(product);
+        toast.success('Το προϊόν δημιουργήθηκε επιτυχώς');
+      }
+      setEditingProduct(null);
+      setIsCreateOpen(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Σφάλμα κατά την αποθήκευση');
     }
-    setEditingProduct(null);
-    setIsCreateOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    deleteProduct(id);
-    setDeleteConfirm(null);
-    toast.success('Το προϊόν διαγράφηκε');
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProductMutation.mutateAsync(id);
+      setDeleteConfirm(null);
+      toast.success('Το προϊόν διαγράφηκε');
+    } catch (error: any) {
+      toast.error(error.message || 'Σφάλμα κατά τη διαγραφή');
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -75,11 +98,23 @@ export default function AdminProducts() {
             Διαχειριστείτε τον κατάλογο προϊόντων ({products.length} προϊόντα)
           </p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Νέο Προϊόν
-        </Button>
+        {isAdmin && (
+          <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Νέο Προϊόν
+          </Button>
+        )}
       </div>
+
+      {!isAdmin && (
+        <Card className="bg-amber-500/10 border-amber-500/20">
+          <CardContent className="py-4">
+            <p className="text-amber-700 text-sm">
+              Δεν έχετε δικαιώματα διαχειριστή. Μπορείτε μόνο να προβάλετε τα προϊόντα.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Search */}
       <Card>
@@ -173,23 +208,27 @@ export default function AdminProducts() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setEditingProduct(product)}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Επεξεργασία
-                        </DropdownMenuItem>
+                        {isAdmin && (
+                          <DropdownMenuItem onClick={() => setEditingProduct(product)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Επεξεργασία
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem asChild>
                           <a href={`/product/${product.slug}`} target="_blank">
                             <Eye className="w-4 h-4 mr-2" />
                             Προβολή
                           </a>
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setDeleteConfirm(product.id)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Διαγραφή
-                        </DropdownMenuItem>
+                        {isAdmin && (
+                          <DropdownMenuItem
+                            onClick={() => setDeleteConfirm(product.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Διαγραφή
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -203,12 +242,14 @@ export default function AdminProducts() {
       {/* Edit Dialog */}
       <ProductEditDialog
         product={editingProduct}
+        categories={categories}
         open={!!editingProduct || isCreateOpen}
         onClose={() => {
           setEditingProduct(null);
           setIsCreateOpen(false);
         }}
         onSave={handleSave}
+        isLoading={createProduct.isPending || updateProduct.isPending}
       />
 
       {/* Delete Confirmation */}
@@ -224,8 +265,12 @@ export default function AdminProducts() {
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
               Ακύρωση
             </Button>
-            <Button variant="destructive" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>
-              Διαγραφή
+            <Button 
+              variant="destructive" 
+              onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+              disabled={deleteProductMutation.isPending}
+            >
+              {deleteProductMutation.isPending ? 'Διαγραφή...' : 'Διαγραφή'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -236,14 +281,14 @@ export default function AdminProducts() {
 
 interface ProductEditDialogProps {
   product: Product | null;
+  categories: { id: string; name: string; slug: string }[];
   open: boolean;
   onClose: () => void;
   onSave: (product: Product) => void;
+  isLoading: boolean;
 }
 
-function ProductEditDialog({ product, open, onClose, onSave }: ProductEditDialogProps) {
-  const { categories } = useProductStore();
-  
+function ProductEditDialog({ product, categories, open, onClose, onSave, isLoading }: ProductEditDialogProps) {
   const getDefaultFormData = () => ({
     name: '',
     nameEn: '',
@@ -375,6 +420,33 @@ function ProductEditDialog({ product, open, onClose, onSave }: ProductEditDialog
               value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Χρώματα (διαχωρισμένα με κόμμα)</Label>
+            <Input
+              value={formData.colors?.join(', ') || ''}
+              onChange={(e) => setFormData({ ...formData, colors: e.target.value.split(',').map(c => c.trim()).filter(Boolean) })}
+              placeholder="Oak Vanilla, White, Interior Grey"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Υλικά (διαχωρισμένα με κόμμα)</Label>
+            <Input
+              value={formData.materials?.join(', ') || ''}
+              onChange={(e) => setFormData({ ...formData, materials: e.target.value.split(',').map(c => c.trim()).filter(Boolean) })}
+              placeholder="CDF Swiss Krono, Corian"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Χαρακτηριστικά (διαχωρισμένα με κόμμα)</Label>
+            <Input
+              value={formData.features?.join(', ') || ''}
+              onChange={(e) => setFormData({ ...formData, features: e.target.value.split(',').map(c => c.trim()).filter(Boolean) })}
+              placeholder="LED φωτισμός, Soft-close συρτάρια"
             />
           </div>
 
@@ -519,8 +591,8 @@ function ProductEditDialog({ product, open, onClose, onSave }: ProductEditDialog
             <Button type="button" variant="outline" onClick={onClose}>
               Ακύρωση
             </Button>
-            <Button type="submit">
-              {product ? 'Αποθήκευση' : 'Δημιουργία'}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Αποθήκευση...' : product ? 'Αποθήκευση' : 'Δημιουργία'}
             </Button>
           </DialogFooter>
         </form>

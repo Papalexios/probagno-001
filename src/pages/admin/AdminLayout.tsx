@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -12,9 +12,14 @@ import {
   Menu,
   X,
   ChevronRight,
+  Loader2,
+  Database,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSeedProducts } from '@/hooks/useProducts';
+import { toast } from 'sonner';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -27,7 +32,44 @@ const navigation = [
 
 export default function AdminLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, isAdmin, isLoading, signOut } = useAuth();
+  const seedProducts = useSeedProducts();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/admin/login');
+    }
+  }, [user, isLoading, navigate]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/admin/login');
+  };
+
+  const handleSeedDatabase = async () => {
+    try {
+      await seedProducts.mutateAsync();
+      toast.success('Database seeded with products!');
+    } catch (error) {
+      toast.error('Failed to seed database');
+      console.error(error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -60,6 +102,15 @@ export default function AdminLayout() {
             </Link>
           </div>
 
+          {/* Admin Status */}
+          {!isAdmin && (
+            <div className="mx-4 mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <p className="text-xs text-amber-600">
+                You have limited access. Contact an admin to get full access.
+              </p>
+            </div>
+          )}
+
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
             {navigation.map((item) => {
@@ -83,15 +134,38 @@ export default function AdminLayout() {
             })}
           </nav>
 
+          {/* Seed Database Button (admin only) */}
+          {isAdmin && (
+            <div className="px-4 pb-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={handleSeedDatabase}
+                disabled={seedProducts.isPending}
+              >
+                {seedProducts.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Database className="w-4 h-4" />
+                )}
+                Sync Products to DB
+              </Button>
+            </div>
+          )}
+
           {/* Footer */}
           <div className="p-4 border-t border-border">
-            <Link
-              to="/"
-              className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-foreground transition-colors"
+            <div className="px-4 py-2 mb-2">
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              <p className="text-xs text-primary">{isAdmin ? 'Admin' : 'User'}</p>
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-3 w-full px-4 py-3 text-muted-foreground hover:text-foreground transition-colors"
             >
               <LogOut className="w-5 h-5" />
-              <span>Έξοδος Admin</span>
-            </Link>
+              <span>Sign Out</span>
+            </button>
           </div>
         </div>
       </aside>

@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/products/ProductCard';
-import { useProductStore } from '@/store/productStore';
+import { useProductsQuery } from '@/hooks/useProducts';
 
 export function FeaturedProducts() {
-  const { getFeaturedProducts } = useProductStore();
-  const featuredProducts = getFeaturedProducts().slice(0, 6);
+  const { data: products = [], isLoading } = useProductsQuery();
+  const featuredProducts = products.filter(p => p.featured).slice(0, 6);
 
   return (
     <section className="py-16 sm:py-20 lg:py-24 bg-background relative overflow-hidden">
