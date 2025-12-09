@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, FolderTree, Package } from 'lucide-react';
 import { useProductStore } from '@/store/productStore';
+import { useProductsQuery, useCategoriesQuery } from '@/hooks/useProducts';
 import { Category } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,13 +20,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
 export default function AdminCategories() {
-  const { categories, products, addCategory, updateCategory, deleteCategory } = useProductStore();
+  // Use Supabase data for accurate counts
+  const { data: dbProducts = [] } = useProductsQuery();
+  const { data: dbCategories = [] } = useCategoriesQuery();
+  const { categories, addCategory, updateCategory, deleteCategory } = useProductStore();
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const getProductCount = (slug: string) => {
-    // Use tags for category counting to match the filtering system
+    // Use tags from Supabase data for accurate category counting
     const tagMap: Record<string, string> = {
       'led-mirrors': 'Καθρέπτης LED',
       'mirror-cabinets': 'Καθρέπτης με ντουλάπι',
@@ -39,14 +43,14 @@ export default function AdminCategories() {
     const tagToMatch = tagMap[slug];
     
     if (slug === 'all') {
-      return products.length;
+      return dbProducts.length;
     }
     
     if (!tagToMatch) {
-      return products.filter(p => p.category === slug).length;
+      return dbProducts.filter(p => p.category === slug).length;
     }
     
-    return products.filter(p => p.tags?.includes(tagToMatch)).length;
+    return dbProducts.filter(p => p.tags?.includes(tagToMatch)).length;
   };
 
   const handleSave = (category: Category) => {

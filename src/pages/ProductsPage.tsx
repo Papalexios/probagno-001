@@ -364,9 +364,9 @@ export default function ProductsPage() {
             </motion.div>
 
             <div className="flex gap-6 lg:gap-10">
-              {/* Desktop Sidebar */}
+              {/* Desktop Sidebar - Sticky with scroll */}
               <aside className="hidden lg:block w-72 flex-shrink-0">
-                <div className="sticky top-28">
+                <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent pr-2">
                   <ProductFilters
                     products={products}
                     categories={categories}

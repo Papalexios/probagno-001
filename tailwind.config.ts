@@ -71,8 +71,9 @@ export default {
         charcoal: "hsl(var(--charcoal))",
       },
       fontFamily: {
-        display: ["var(--font-display)", "serif"],
-        body: ["var(--font-body)", "sans-serif"],
+        display: ["Playfair Display", "var(--font-display)", "serif"],
+        body: ["DM Sans", "var(--font-body)", "sans-serif"],
+        serif: ["Playfair Display", "Georgia", "serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
