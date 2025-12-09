@@ -17,12 +17,18 @@ const translations: Translations = {
   'nav.about': { el: 'Σχετικά', en: 'About' },
   'nav.contact': { el: 'Επικοινωνία', en: 'Contact' },
   'nav.catalog': { el: 'Κατάλογος', en: 'Catalog' },
+  'nav.admin': { el: 'Διαχείριση', en: 'Admin' },
   
   // Hero Section
   'hero.title': { el: 'Έπιπλα Μπάνιου Υψηλής Αισθητικής', en: 'Premium Bathroom Furniture' },
   'hero.subtitle': { el: 'Από το 1974, δημιουργούμε χώρους που εμπνέουν', en: 'Since 1974, creating spaces that inspire' },
   'hero.cta.products': { el: 'Ανακαλύψτε τη Συλλογή', en: 'Discover Collection' },
   'hero.cta.contact': { el: 'Επικοινωνήστε μαζί μας', en: 'Contact Us' },
+  
+  // Home sections
+  'home.featured.title': { el: 'Επιλεγμένα Προϊόντα', en: 'Featured Products' },
+  'home.featured.subtitle': { el: 'Μια επιλεγμένη συλλογή από τα καλύτερα έπιπλα μπάνιου μας', en: 'A curated selection of our finest bathroom furniture' },
+  'home.featured.viewAll': { el: 'Δείτε Όλα τα Προϊόντα', en: 'View All Products' },
   
   // Featured Products
   'featured.title': { el: 'Επιλεγμένα Προϊόντα', en: 'Featured Products' },
@@ -70,6 +76,7 @@ const translations: Translations = {
   'category.cabinets': { el: 'Ντουλάπια', en: 'Cabinets' },
   'category.columns': { el: 'Κολώνες', en: 'Columns' },
   'category.accessories': { el: 'Αξεσουάρ', en: 'Accessories' },
+  'category.sinks': { el: 'Νιπτήρες', en: 'Sinks' },
   'category.price': { el: 'Τιμή', en: 'Price' },
   
   // Contact Page
@@ -151,6 +158,7 @@ const translations: Translations = {
   'footer.terms': { el: 'Όροι Χρήσης', en: 'Terms of Use' },
   'footer.rights': { el: 'Με επιφύλαξη παντός δικαιώματος', en: 'All rights reserved' },
   'footer.quickLinks': { el: 'Γρήγοροι Σύνδεσμοι', en: 'Quick Links' },
+  'footer.navigation': { el: 'Πλοήγηση', en: 'Navigation' },
   'footer.categories': { el: 'Κατηγορίες', en: 'Categories' },
   'footer.contact': { el: 'Επικοινωνία', en: 'Contact' },
   'footer.description': { el: 'Ελληνική εταιρεία κατασκευής επίπλων μπάνιου υψηλής αισθητικής από το 1974.', en: 'Greek manufacturer of premium bathroom furniture since 1974.' },
