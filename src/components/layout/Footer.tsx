@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 export function Footer() {
   return (
@@ -8,14 +9,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center">
-                <span className="text-primary-foreground font-display font-bold text-xl">PB</span>
-              </div>
-              <div>
-                <h3 className="font-display text-xl font-semibold">PROBAGNO</h3>
-                <p className="text-xs text-primary-foreground/60">Since 1974</p>
-              </div>
+            <div className="mb-6 [&_span]:!text-stone-100 [&_a]:pointer-events-none">
+              <Logo size="lg" showTagline />
             </div>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
               Με συνεχή πορεία 50 ετών στο χώρο σχεδιασμού & κατασκευής επίπλων μπάνιου, 
