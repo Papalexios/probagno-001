@@ -121,7 +121,7 @@ export const products: Product[] = [
       { id: 'dim-963-4', width: 130, height: 60, depth: 3, price: 358, sku: '963-MIRROR' },
       { id: 'dim-963-5', width: 30, height: 130, depth: 30, price: 424, sku: '963K-COLUMN' },
     ],
-    materials: ['CDF Swiss Krono D3700 OV Oak Vanilla', 'CDF Swiss Krono K101 PE White', 'CDF Swiss Krono U191 PE Interior Grey', 'CDF Swiss Krono U164 PE Anthracite', 'CDF Swiss Krono U190 TX Black'],
+    materials: ['', '', '', '', ''],
     colors: ['Oak Vanilla', 'White', 'Interior Grey', 'Anthracite', 'Black'],
     features: ['LED φωτισμός', 'Soft-close συρτάρια', 'Κολώνα 963Κ', 'Κρεμαστό'],
     inStock: true,
