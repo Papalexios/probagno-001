@@ -212,8 +212,7 @@ export default function AdminSettings() {
               <Button 
                 onClick={handleSaveStore} 
                 className="gap-2"
-                disabled={updateStore.isPending}
-              >
+disabled={true}              >
                 {updateStore.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
