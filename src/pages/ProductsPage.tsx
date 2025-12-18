@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { searchProduct, normalizeSearchText } from '@/utils/searchUtils';
 
 export default function ProductsPage() {
   const { data: products = [], isLoading } = useProductsQuery();
@@ -35,45 +36,13 @@ export default function ProductsPage() {
     return Math.ceil(Math.max(...prices) / 100) * 100;
   }, [products]);
 
-  // Filtered and sorted products
+  // Filtered and sorted products - ENTERPRISE GRADE
   const filteredProducts = useMemo(() => {
     let result = products;
 
-    // Enhanced search filter - searches across multiple fields
-    if (search) {
-      const lowerSearch = search.toLowerCase().trim();
-      result = result.filter((p) => {
-        // Search in names
-        const nameMatch = p.name.toLowerCase().includes(lowerSearch) ||
-                          p.nameEn.toLowerCase().includes(lowerSearch);
-        
-        // Search in description
-        const descMatch = p.description.toLowerCase().includes(lowerSearch) ||
-                          p.descriptionEn?.toLowerCase().includes(lowerSearch);
-        
-        // Search in colors
-        const colorMatch = p.colors.some(color => 
-          color.toLowerCase().includes(lowerSearch)
-        );
-        
-        // Search in materials
-        const materialMatch = p.materials.some(material => 
-          material.toLowerCase().includes(lowerSearch)
-        );
-        
-        // Search in features
-        const featureMatch = p.features.some(feature => 
-          feature.toLowerCase().includes(lowerSearch)
-        );
-        
-        // Search in tags/categories
-        const tagMatch = p.tags?.some(tag => 
-          tag.toLowerCase().includes(lowerSearch)
-        );
-        
-        // Return true if ANY field matches
-        return nameMatch || descMatch || colorMatch || materialMatch || featureMatch || tagMatch;
-      });
+    // ADVANCED SEARCH - Uses enterprise-grade search utilities
+    if (search && search.trim()) {
+      result = result.filter((p) => searchProduct(p, search));
     }
 
     // Category filter (using tags)
@@ -85,21 +54,35 @@ export default function ProductsPage() {
       }
     }
 
-    // Color filter
+    // Color filter - NORMALIZED MATCHING
     if (selectedColors.length > 0) {
       result = result.filter((p) =>
-        p.colors.some((color) =>
-          selectedColors.includes(color.toLowerCase().trim())
-        )
+        p.colors.some((color) => {
+          const normalizedProductColor = normalizeSearchText(color);
+          return selectedColors.some((selectedColor) => {
+            const normalizedSelectedColor = normalizeSearchText(selectedColor);
+            // Exact match after normalization
+            return normalizedProductColor === normalizedSelectedColor;
+          });
+        })
       );
     }
 
-    // Material filter
+    // Material filter - NORMALIZED MATCHING
     if (selectedMaterials.length > 0) {
       result = result.filter((p) =>
-        p.materials.some((material) =>
-          selectedMaterials.includes(material.trim())
-        )
+        p.materials.some((material) => {
+          const normalizedProductMaterial = normalizeSearchText(material);
+          return selectedMaterials.some((selectedMaterial) => {
+            const normalizedSelectedMaterial = normalizeSearchText(selectedMaterial);
+            // Exact match after normalization OR contains match for long material names
+            return (
+              normalizedProductMaterial === normalizedSelectedMaterial ||
+              normalizedProductMaterial.includes(normalizedSelectedMaterial) ||
+              normalizedSelectedMaterial.includes(normalizedProductMaterial)
+            );
+          });
+        })
       );
     }
 
@@ -118,14 +101,21 @@ export default function ProductsPage() {
         result = [...result].sort((a, b) => (b.salePrice || b.basePrice) - (a.salePrice || a.basePrice));
         break;
       case 'name':
-        result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+        result = [...result].sort((a, b) => a.name.localeCompare(b.name, 'el'));
         break;
       case 'newest':
         result = [...result].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         break;
       case 'featured':
       default:
-        result = [...result].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+        result = [...result].sort((a, b) => {
+          // Featured first
+          if (a.featured !== b.featured) return b.featured ? 1 : -1;
+          // Then best sellers
+          if (a.bestSeller !== b.bestSeller) return b.bestSeller ? 1 : -1;
+          // Then by newest
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
     }
 
     return result;
