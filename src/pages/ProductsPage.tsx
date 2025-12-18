@@ -39,15 +39,41 @@ export default function ProductsPage() {
   const filteredProducts = useMemo(() => {
     let result = products;
 
-    // Search filter
+    // Enhanced search filter - searches across multiple fields
     if (search) {
-      const lowerSearch = search.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(lowerSearch) ||
-          p.nameEn.toLowerCase().includes(lowerSearch) ||
-          p.description.toLowerCase().includes(lowerSearch)
-      );
+      const lowerSearch = search.toLowerCase().trim();
+      result = result.filter((p) => {
+        // Search in names
+        const nameMatch = p.name.toLowerCase().includes(lowerSearch) ||
+                          p.nameEn.toLowerCase().includes(lowerSearch);
+        
+        // Search in description
+        const descMatch = p.description.toLowerCase().includes(lowerSearch) ||
+                          p.descriptionEn?.toLowerCase().includes(lowerSearch);
+        
+        // Search in colors
+        const colorMatch = p.colors.some(color => 
+          color.toLowerCase().includes(lowerSearch)
+        );
+        
+        // Search in materials
+        const materialMatch = p.materials.some(material => 
+          material.toLowerCase().includes(lowerSearch)
+        );
+        
+        // Search in features
+        const featureMatch = p.features.some(feature => 
+          feature.toLowerCase().includes(lowerSearch)
+        );
+        
+        // Search in tags/categories
+        const tagMatch = p.tags?.some(tag => 
+          tag.toLowerCase().includes(lowerSearch)
+        );
+        
+        // Return true if ANY field matches
+        return nameMatch || descMatch || colorMatch || materialMatch || featureMatch || tagMatch;
+      });
     }
 
     // Category filter (using tags)
