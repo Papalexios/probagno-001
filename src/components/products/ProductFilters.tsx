@@ -15,7 +15,6 @@ import {
 import { cn } from '@/lib/utils';
 import type { Product, Category } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { groupMaterialsIntoCategories, getCategoryDisplayName } from '@/utils/materialCategories';
 
 // Color name to visual representation mapping
 const colorMapping: Record<string, { hex: string; pattern?: string; label: string }> = {
@@ -82,6 +81,7 @@ export function ProductFilters({
   onCategoryChange,
   onColorChange,
   onMaterialChange,
+  onPriceChange,
   onClearFilters,
   hasFilters,
 }: ProductFiltersProps) {
@@ -100,17 +100,23 @@ export function ProductFilters({
       .sort((a, b) => b.count - a.count);
   }, [products]);
 
-  // PROFESSIONAL MATERIAL CATEGORIZATION
+  // SIMPLE material options - no fancy categorization yet
   const materialOptions = useMemo(() => {
     const materialCounts = new Map<string, number>();
     products.forEach((product) => {
       product.materials.forEach((material) => {
-        materialCounts.set(material.trim(), (materialCounts.get(material.trim()) || 0) + 1);
+        const normalized = material.trim();
+        materialCounts.set(normalized, (materialCounts.get(normalized) || 0) + 1);
       });
     });
     
-    const materialsWithCounts = Array.from(materialCounts.entries()).map(([material, count]) => ({ material, count }));
-    return groupMaterialsIntoCategories(materialsWithCounts);
+    return Array.from(materialCounts.entries())
+      .map(([material, count]) => ({
+        value: material,
+        label: material.length > 30 ? material.slice(0, 27) + '...' : material,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
   }, [products]);
 
   const tagCategories = useMemo(() => {
@@ -171,7 +177,7 @@ export function ProductFilters({
               {selectedMaterials.map((material) => (
                 <motion.div key={`mat-${material}`} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}>
                   <Badge variant="secondary" className="gap-1.5 pr-1.5 cursor-pointer hover:bg-destructive/10 transition-colors" onClick={() => onMaterialChange(material)}>
-                    <Layers className="w-3 h-3" />{getCategoryDisplayName(material, language)}<X className="w-3 h-3 ml-0.5" />
+                    <Layers className="w-3 h-3" />{material.length > 15 ? material.slice(0, 12) + '...' : material}<X className="w-3 h-3 ml-0.5" />
                   </Badge>
                 </motion.div>
               ))}
@@ -243,9 +249,9 @@ export function ProductFilters({
           <AccordionContent className="pb-4">
             <div className="space-y-2 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
               {materialOptions.map((material) => (
-                <label key={material.category} className={cn('flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all', 'hover:bg-accent/50', selectedMaterials.includes(material.category) && 'bg-primary/5 ring-1 ring-primary/20')}>
-                  <Checkbox checked={selectedMaterials.includes(material.category)} onCheckedChange={() => onMaterialChange(material.category)} className="rounded-md" />
-                  <span className="text-sm flex-1 truncate" title={material.category}>{language === 'el' ? material.displayName : material.displayNameEn}</span>
+                <label key={material.value} className={cn('flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all', 'hover:bg-accent/50', selectedMaterials.includes(material.value) && 'bg-primary/5 ring-1 ring-primary/20')}>
+                  <Checkbox checked={selectedMaterials.includes(material.value)} onCheckedChange={() => onMaterialChange(material.value)} className="rounded-md" />
+                  <span className="text-sm flex-1 truncate" title={material.value}>{material.label}</span>
                   <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{material.count}</span>
                 </label>
               ))}
