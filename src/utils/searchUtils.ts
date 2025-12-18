@@ -1,6 +1,6 @@
 /**
  * Enterprise-grade search utilities for product filtering
- * Supports Greek and English with fuzzy matching
+ * STRICT MODE: Only returns results that actually match
  */
 
 /**
@@ -39,18 +39,21 @@ export function tokenize(text: string): string[] {
   // Split by spaces, hyphens, slashes, commas
   return normalized
     .split(/[\s\-\/,]+/)
-    .filter(token => token.length > 1); // Ignore single chars
+    .filter(token => token.length >= 2); // Minimum 2 characters
 }
 
 /**
  * Check if search term matches target text
- * Uses multiple strategies for comprehensive matching
+ * STRICT: Returns false if no match found
  */
 export function matchesSearch(searchTerm: string, targetText: string): boolean {
   if (!searchTerm || !targetText) return false;
   
   const normalizedSearch = normalizeSearchText(searchTerm);
   const normalizedTarget = normalizeSearchText(targetText);
+  
+  // Must have minimum length after normalization
+  if (normalizedSearch.length < 2) return false;
   
   // Strategy 1: Direct substring match (fastest)
   if (normalizedTarget.includes(normalizedSearch)) {
@@ -59,27 +62,42 @@ export function matchesSearch(searchTerm: string, targetText: string): boolean {
   
   // Strategy 2: Tokenized word match
   const searchTokens = tokenize(searchTerm);
-  const targetTokens = tokenize(targetText);
+  if (searchTokens.length === 0) return false; // No valid tokens
   
-  // Check if any search token matches any target token
+  const targetTokens = tokenize(targetText);
+  if (targetTokens.length === 0) return false; // No valid tokens
+  
+  // Check if ALL search tokens match at least one target token
+  // This ensures "White LED" requires BOTH white AND LED
   for (const searchToken of searchTokens) {
+    let tokenMatched = false;
+    
     for (const targetToken of targetTokens) {
       // Full token match
       if (targetToken === searchToken) {
-        return true;
+        tokenMatched = true;
+        break;
       }
       // Token starts with search (e.g., "cori" matches "corian")
       if (targetToken.startsWith(searchToken) && searchToken.length >= 3) {
-        return true;
+        tokenMatched = true;
+        break;
       }
       // Token contains search in the middle (for compound words)
       if (targetToken.includes(searchToken) && searchToken.length >= 4) {
-        return true;
+        tokenMatched = true;
+        break;
       }
+    }
+    
+    // If this search token didn't match anything, the whole search fails
+    if (!tokenMatched) {
+      return false;
     }
   }
   
-  return false;
+  // All tokens matched
+  return true;
 }
 
 /**
@@ -108,10 +126,19 @@ export interface SearchableProduct {
 }
 
 export function searchProduct(product: SearchableProduct, searchTerm: string): boolean {
-  if (!searchTerm || !product) return true; // No search = show all
+  // CRITICAL FIX: Only return true if search is EXPLICITLY empty/null
+  if (!searchTerm || searchTerm.trim().length === 0) {
+    return true; // Empty search = show all products
+  }
+  
+  if (!product) return false; // No product = no match
   
   const normalizedSearch = normalizeSearchText(searchTerm);
-  if (normalizedSearch.length === 0) return true;
+  
+  // CRITICAL FIX: If normalized search is too short or empty, return FALSE
+  if (normalizedSearch.length < 2) {
+    return false; // Invalid search = hide all products
+  }
   
   // Search in name (Greek and English)
   if (matchesSearch(searchTerm, product.name)) return true;
@@ -135,6 +162,7 @@ export function searchProduct(product: SearchableProduct, searchTerm: string): b
   if (product.category && matchesSearch(searchTerm, product.category)) return true;
   if (product.subcategory && matchesSearch(searchTerm, product.subcategory)) return true;
   
+  // CRITICAL FIX: If nothing matched, return FALSE (not true!)
   return false;
 }
 
