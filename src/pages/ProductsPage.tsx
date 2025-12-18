@@ -36,23 +36,28 @@ export default function ProductsPage() {
     return Math.ceil(Math.max(...prices) / 100) * 100;
   }, [products]);
 
-  // Filtered and sorted products - ENTERPRISE GRADE
-  const filteredProducts = useMemo(() => {
+  // STEP 1: Apply search and category filters FIRST (for sidebar counts)
+  const searchAndCategoryFiltered = useMemo(() => {
     let result = products;
 
-    // ADVANCED SEARCH - Uses enterprise-grade search utilities
+    // Search filter
     if (search && search.trim()) {
       result = result.filter((p) => searchProduct(p, search));
     }
 
-    // Category filter (using tags)
-    if (selectedCategories.length > 0) {
-      if (!selectedCategories.includes('all')) {
-        result = result.filter((p) => 
-          p.tags?.some((tag) => selectedCategories.includes(tag))
-        );
-      }
+    // Category filter
+    if (selectedCategories.length > 0 && !selectedCategories.includes('all')) {
+      result = result.filter((p) => 
+        p.tags?.some((tag) => selectedCategories.includes(tag))
+      );
     }
+
+    return result;
+  }, [products, search, selectedCategories]);
+
+  // STEP 2: Apply ALL filters for final product list
+  const filteredProducts = useMemo(() => {
+    let result = searchAndCategoryFiltered;
 
     // Color filter - NORMALIZED MATCHING
     if (selectedColors.length > 0) {
@@ -61,7 +66,6 @@ export default function ProductsPage() {
           const normalizedProductColor = normalizeSearchText(color);
           return selectedColors.some((selectedColor) => {
             const normalizedSelectedColor = normalizeSearchText(selectedColor);
-            // Exact match after normalization
             return normalizedProductColor === normalizedSelectedColor;
           });
         })
@@ -75,7 +79,6 @@ export default function ProductsPage() {
           const normalizedProductMaterial = normalizeSearchText(material);
           return selectedMaterials.some((selectedMaterial) => {
             const normalizedSelectedMaterial = normalizeSearchText(selectedMaterial);
-            // Exact match after normalization OR contains match for long material names
             return (
               normalizedProductMaterial === normalizedSelectedMaterial ||
               normalizedProductMaterial.includes(normalizedSelectedMaterial) ||
@@ -109,17 +112,14 @@ export default function ProductsPage() {
       case 'featured':
       default:
         result = [...result].sort((a, b) => {
-          // Featured first
           if (a.featured !== b.featured) return b.featured ? 1 : -1;
-          // Then best sellers
           if (a.bestSeller !== b.bestSeller) return b.bestSeller ? 1 : -1;
-          // Then by newest
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
     }
 
     return result;
-  }, [products, search, selectedCategories, selectedColors, selectedMaterials, priceRange, sortBy]);
+  }, [searchAndCategoryFiltered, selectedColors, selectedMaterials, priceRange, sortBy]);
 
   // Toggle functions
   const toggleCategory = (slug: string) => {
@@ -262,7 +262,7 @@ export default function ProductsPage() {
                       </SheetHeader>
                       <div className="mt-6">
                         <ProductFilters
-                          products={products}
+                          products={searchAndCategoryFiltered}
                           categories={categories}
                           selectedCategories={selectedCategories}
                           selectedColors={selectedColors}
@@ -389,7 +389,7 @@ export default function ProductsPage() {
               <aside className="hidden lg:block w-72 flex-shrink-0">
                 <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent pr-2">
                   <ProductFilters
-                    products={products}
+                    products={searchAndCategoryFiltered}
                     categories={categories}
                     selectedCategories={selectedCategories}
                     selectedColors={selectedColors}
