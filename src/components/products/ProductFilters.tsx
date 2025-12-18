@@ -128,7 +128,7 @@ export function ProductFilters({
       .sort((a, b) => b.count - a.count);
   }, [products]);
 
-  // Extract unique materials from products with counts
+  // Extract unique materials from products with counts - SHOW ALL
   const materialOptions = useMemo(() => {
     const materialCounts = new Map<string, number>();
     
@@ -142,11 +142,11 @@ export function ProductFilters({
     return Array.from(materialCounts.entries())
       .map(([material, count]) => ({
         value: material,
-        label: material.length > 25 ? material.slice(0, 22) + '...' : material,
+        label: material.length > 30 ? material.slice(0, 27) + '...' : material,
         count,
       }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 12); // Limit to top 12 materials
+      .sort((a, b) => b.count - a.count);
+      // REMOVED .slice(0, 12) - Now shows ALL materials!
   }, [products]);
 
   // Define probagno.gr style tags (same as categories on probagno.gr)
@@ -419,7 +419,7 @@ export function ProductFilters({
           </AccordionContent>
         </AccordionItem>
 
-        {/* Materials */}
+        {/* Materials - NOW SHOWS ALL */}
         <AccordionItem value="materials" className="border rounded-xl px-4 bg-card/50">
           <AccordionTrigger className="py-4 hover:no-underline">
             <div className="flex items-center gap-3">
@@ -433,7 +433,7 @@ export function ProductFilters({
             </div>
           </AccordionTrigger>
           <AccordionContent className="pb-4">
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
               {materialOptions.map((material) => (
                 <label
                   key={material.value}
