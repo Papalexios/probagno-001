@@ -305,6 +305,80 @@ export function useDeleteProduct() {
   });
 }
 
+// Category mutations
+export function useCreateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (category: Category) => {
+      const dbCategory = {
+        name: category.name,
+        name_en: category.nameEn,
+        slug: category.slug,
+        description: category.description || null,
+        image: category.image || null,
+        product_count: category.productCount || 0,
+      };
+      
+      const { data, error } = await supabase
+        .from('categories')
+        .insert(dbCategory)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return toAppCategory(data as unknown as DbCategory);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+  });
+}
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Category> }) => {
+      const dbUpdates: any = {};
+      
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
+      if (updates.nameEn !== undefined) dbUpdates.name_en = updates.nameEn;
+      if (updates.slug !== undefined) dbUpdates.slug = updates.slug;
+      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.image !== undefined) dbUpdates.image = updates.image;
+      if (updates.productCount !== undefined) dbUpdates.product_count = updates.productCount;
+
+      const { data, error } = await supabase
+        .from('categories')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return toAppCategory(data as unknown as DbCategory);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+  });
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('categories').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+  });
+}
+
 // Seed database with initial products (admin only)
 export function useSeedProducts() {
   const queryClient = useQueryClient();

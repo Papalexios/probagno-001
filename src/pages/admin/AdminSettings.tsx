@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Save, Store, Mail, Phone, MapPin, CreditCard, Truck, Bell } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Save, Store, Mail, Phone, MapPin, Truck, Bell, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,9 +8,31 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import {
+  useStoreSettings,
+  useUpdateStoreSettings,
+  useShippingSettings,
+  useUpdateShippingSettings,
+  useNotificationSettings,
+  useUpdateNotificationSettings,
+  StoreSettings,
+  ShippingSettings,
+  NotificationSettings,
+} from '@/hooks/useSettings';
 
 export default function AdminSettings() {
-  const [storeSettings, setStoreSettings] = useState({
+  // Fetch settings from database
+  const { data: storeData, isLoading: storeLoading } = useStoreSettings();
+  const { data: shippingData, isLoading: shippingLoading } = useShippingSettings();
+  const { data: notificationData, isLoading: notificationLoading } = useNotificationSettings();
+  
+  // Mutations
+  const updateStore = useUpdateStoreSettings();
+  const updateShipping = useUpdateShippingSettings();
+  const updateNotifications = useUpdateNotificationSettings();
+
+  // Local state for form editing
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>({
     name: 'PROBAGNO',
     email: 'info@probagno.gr',
     phone1: '210 6622215',
@@ -21,31 +42,69 @@ export default function AdminSettings() {
     description: 'Με συνεχή πορεία 50 ετών στο χώρο σχεδιασμού & κατασκευής επίπλων μπάνιου.',
   });
 
-  const [shippingSettings, setShippingSettings] = useState({
+  const [shippingSettings, setShippingSettings] = useState<ShippingSettings>({
     freeShippingThreshold: 500,
     standardShippingCost: 15,
     expressShippingCost: 30,
     enableFreeShipping: true,
   });
 
-  const [notificationSettings, setNotificationSettings] = useState({
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     orderConfirmation: true,
     shippingUpdates: true,
     newsletterEnabled: true,
     smsNotifications: false,
   });
 
-  const handleSaveStore = () => {
-    toast.success('Οι ρυθμίσεις καταστήματος αποθηκεύτηκαν');
+  // Sync local state with database data
+  useEffect(() => {
+    if (storeData) setStoreSettings(storeData);
+  }, [storeData]);
+
+  useEffect(() => {
+    if (shippingData) setShippingSettings(shippingData);
+  }, [shippingData]);
+
+  useEffect(() => {
+    if (notificationData) setNotificationSettings(notificationData);
+  }, [notificationData]);
+
+  const handleSaveStore = async () => {
+    try {
+      await updateStore.mutateAsync(storeSettings);
+      toast.success('Οι ρυθμίσεις καταστήματος αποθηκεύτηκαν');
+    } catch (error: any) {
+      toast.error(error.message || 'Σφάλμα κατά την αποθήκευση');
+    }
   };
 
-  const handleSaveShipping = () => {
-    toast.success('Οι ρυθμίσεις αποστολής αποθηκεύτηκαν');
+  const handleSaveShipping = async () => {
+    try {
+      await updateShipping.mutateAsync(shippingSettings);
+      toast.success('Οι ρυθμίσεις αποστολής αποθηκεύτηκαν');
+    } catch (error: any) {
+      toast.error(error.message || 'Σφάλμα κατά την αποθήκευση');
+    }
   };
 
-  const handleSaveNotifications = () => {
-    toast.success('Οι ρυθμίσεις ειδοποιήσεων αποθηκεύτηκαν');
+  const handleSaveNotifications = async () => {
+    try {
+      await updateNotifications.mutateAsync(notificationSettings);
+      toast.success('Οι ρυθμίσεις ειδοποιήσεων αποθηκεύτηκαν');
+    } catch (error: any) {
+      toast.error(error.message || 'Σφάλμα κατά την αποθήκευση');
+    }
   };
+
+  const isLoading = storeLoading || shippingLoading || notificationLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -150,8 +209,16 @@ export default function AdminSettings() {
                 />
               </div>
 
-              <Button onClick={handleSaveStore} className="gap-2">
-                <Save className="w-4 h-4" />
+              <Button 
+                onClick={handleSaveStore} 
+                className="gap-2"
+                disabled={updateStore.isPending}
+              >
+                {updateStore.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
                 Αποθήκευση
               </Button>
             </CardContent>
@@ -231,8 +298,16 @@ export default function AdminSettings() {
                 </div>
               </div>
 
-              <Button onClick={handleSaveShipping} className="gap-2">
-                <Save className="w-4 h-4" />
+              <Button 
+                onClick={handleSaveShipping} 
+                className="gap-2"
+                disabled={updateShipping.isPending}
+              >
+                {updateShipping.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
                 Αποθήκευση
               </Button>
             </CardContent>
@@ -254,22 +329,22 @@ export default function AdminSettings() {
             <CardContent className="space-y-4">
               {[
                 {
-                  key: 'orderConfirmation',
+                  key: 'orderConfirmation' as const,
                   label: 'Επιβεβαίωση Παραγγελίας',
                   description: 'Αποστολή email επιβεβαίωσης μετά από κάθε παραγγελία',
                 },
                 {
-                  key: 'shippingUpdates',
+                  key: 'shippingUpdates' as const,
                   label: 'Ενημερώσεις Αποστολής',
                   description: 'Ειδοποίηση πελατών για την πορεία της αποστολής',
                 },
                 {
-                  key: 'newsletterEnabled',
+                  key: 'newsletterEnabled' as const,
                   label: 'Newsletter',
                   description: 'Ενεργοποίηση εγγραφής στο newsletter',
                 },
                 {
-                  key: 'smsNotifications',
+                  key: 'smsNotifications' as const,
                   label: 'SMS Ειδοποιήσεις',
                   description: 'Αποστολή SMS για σημαντικές ενημερώσεις',
                 },
@@ -283,7 +358,7 @@ export default function AdminSettings() {
                     <p className="text-sm text-muted-foreground">{setting.description}</p>
                   </div>
                   <Switch
-                    checked={notificationSettings[setting.key as keyof typeof notificationSettings]}
+                    checked={notificationSettings[setting.key]}
                     onCheckedChange={(checked) =>
                       setNotificationSettings({
                         ...notificationSettings,
@@ -294,8 +369,16 @@ export default function AdminSettings() {
                 </div>
               ))}
 
-              <Button onClick={handleSaveNotifications} className="gap-2 mt-4">
-                <Save className="w-4 h-4" />
+              <Button 
+                onClick={handleSaveNotifications} 
+                className="gap-2 mt-4"
+                disabled={updateNotifications.isPending}
+              >
+                {updateNotifications.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
                 Αποθήκευση
               </Button>
             </CardContent>

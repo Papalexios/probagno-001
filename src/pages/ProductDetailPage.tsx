@@ -23,6 +23,7 @@ export default function ProductDetailPage() {
   const { addItem } = useCartStore();
 
   const [selectedDimensionId, setSelectedDimensionId] = useState('');
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
   // Set initial dimension when product loads
@@ -105,15 +106,24 @@ export default function ProductDetailPage() {
             >
               <div className="aspect-square rounded-lg overflow-hidden bg-muted">
                 <img
-                  src={product.images[0]?.url}
+                  src={product.images[selectedImageIndex]?.url || product.images[0]?.url}
                   alt={productName}
                   className="w-full h-full object-cover"
                 />
               </div>
               {product.images.length > 1 && (
                 <div className="grid grid-cols-4 gap-4">
-                  {product.images.map((image) => (
-                    <div key={image.id} className="aspect-square rounded-md overflow-hidden bg-muted cursor-pointer hover:ring-2 ring-primary transition-all">
+                  {product.images.map((image, index) => (
+                    <div 
+                      key={image.id} 
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={cn(
+                        "aspect-square rounded-md overflow-hidden bg-muted cursor-pointer transition-all",
+                        selectedImageIndex === index 
+                          ? "ring-2 ring-primary" 
+                          : "hover:ring-2 ring-primary/50"
+                      )}
+                    >
                       <img src={image.url} alt={image.alt} className="w-full h-full object-cover" />
                     </div>
                   ))}

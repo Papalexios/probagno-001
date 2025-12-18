@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, FolderTree, Package } from 'lucide-react';
-import { useProductStore } from '@/store/productStore';
-import { useProductsQuery, useCategoriesQuery } from '@/hooks/useProducts';
+import { Plus, Edit, Trash2, FolderTree, Package, Loader2 } from 'lucide-react';
+import { useProductsQuery, useCategoriesQuery, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/useProducts';
 import { Category } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,8 +21,13 @@ import { toast } from 'sonner';
 export default function AdminCategories() {
   // Use Supabase data for accurate counts
   const { data: dbProducts = [] } = useProductsQuery();
-  const { data: dbCategories = [] } = useCategoriesQuery();
-  const { addCategory, updateCategory, deleteCategory } = useProductStore();
+  const { data: dbCategories = [], isLoading } = useCategoriesQuery();
+  
+  // Mutations
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
+  const deleteCategoryMutation = useDeleteCategory();
+  
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -59,19 +63,23 @@ export default function AdminCategories() {
     return found?.productCount || 0;
   };
 
-  const handleSave = (category: Category) => {
-    if (editingCategory) {
-      updateCategory(category.id, category);
-      toast.success('Η κατηγορία ενημερώθηκε');
-    } else {
-      addCategory(category);
-      toast.success('Η κατηγορία δημιουργήθηκε');
+  const handleSave = async (category: Category) => {
+    try {
+      if (editingCategory) {
+        await updateCategory.mutateAsync({ id: category.id, updates: category });
+        toast.success('Η κατηγορία ενημερώθηκε');
+      } else {
+        await createCategory.mutateAsync(category);
+        toast.success('Η κατηγορία δημιουργήθηκε');
+      }
+      setEditingCategory(null);
+      setIsCreateOpen(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Σφάλμα κατά την αποθήκευση');
     }
-    setEditingCategory(null);
-    setIsCreateOpen(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     const category = categoriesWithCounts.find(c => c.id === id);
     const count = category ? category.productCount : 0;
     if (count > 0) {
@@ -79,10 +87,23 @@ export default function AdminCategories() {
       setDeleteConfirm(null);
       return;
     }
-    deleteCategory(id);
-    setDeleteConfirm(null);
-    toast.success('Η κατηγορία διαγράφηκε');
+    
+    try {
+      await deleteCategoryMutation.mutateAsync(id);
+      setDeleteConfirm(null);
+      toast.success('Η κατηγορία διαγράφηκε');
+    } catch (error: any) {
+      toast.error(error.message || 'Σφάλμα κατά τη διαγραφή');
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -158,6 +179,7 @@ export default function AdminCategories() {
           setIsCreateOpen(false);
         }}
         onSave={handleSave}
+        isLoading={createCategory.isPending || updateCategory.isPending}
       />
 
       {/* Delete Confirmation */}
@@ -174,8 +196,12 @@ export default function AdminCategories() {
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
               Ακύρωση
             </Button>
-            <Button variant="destructive" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>
-              Διαγραφή
+            <Button 
+              variant="destructive" 
+              onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+              disabled={deleteCategoryMutation.isPending}
+            >
+              {deleteCategoryMutation.isPending ? 'Διαγραφή...' : 'Διαγραφή'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -189,25 +215,54 @@ interface CategoryDialogProps {
   open: boolean;
   onClose: () => void;
   onSave: (category: Category) => void;
+  isLoading?: boolean;
 }
 
-function CategoryDialog({ category, open, onClose, onSave }: CategoryDialogProps) {
-  const [formData, setFormData] = useState<Partial<Category>>(
-    category || {
-      name: '',
-      nameEn: '',
-      slug: '',
-      description: '',
+function CategoryDialog({ category, open, onClose, onSave, isLoading }: CategoryDialogProps) {
+  const [formData, setFormData] = useState<Partial<Category>>({
+    name: '',
+    nameEn: '',
+    slug: '',
+    description: '',
+  });
+
+  // Reset form when dialog opens with a category
+  useEffect(() => {
+    if (open) {
+      if (category) {
+        setFormData({
+          name: category.name,
+          nameEn: category.nameEn,
+          slug: category.slug,
+          description: category.description || '',
+        });
+      } else {
+        setFormData({
+          name: '',
+          nameEn: '',
+          slug: '',
+          description: '',
+        });
+      }
     }
-  );
+  }, [category, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.slug || formData.slug.trim() === '') {
+      toast.error('Το slug είναι υποχρεωτικό');
+      return;
+    }
+    
     onSave({
-      id: category?.id || `cat-${Date.now()}`,
+      id: category?.id || crypto.randomUUID(),
+      name: formData.name || '',
+      nameEn: formData.nameEn || '',
+      slug: formData.slug || '',
+      description: formData.description,
       productCount: category?.productCount || 0,
-      ...formData,
-    } as Category);
+    });
   };
 
   return (
@@ -247,6 +302,9 @@ function CategoryDialog({ category, open, onClose, onSave }: CategoryDialogProps
               required
               placeholder="vanities"
             />
+            <p className="text-xs text-muted-foreground">
+              URL identifier (e.g., vanities). Must be unique.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -263,8 +321,8 @@ function CategoryDialog({ category, open, onClose, onSave }: CategoryDialogProps
             <Button type="button" variant="outline" onClick={onClose}>
               Ακύρωση
             </Button>
-            <Button type="submit">
-              {category ? 'Αποθήκευση' : 'Δημιουργία'}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Αποθήκευση...' : category ? 'Αποθήκευση' : 'Δημιουργία'}
             </Button>
           </DialogFooter>
         </form>

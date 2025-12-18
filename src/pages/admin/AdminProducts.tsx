@@ -531,10 +531,53 @@ function ProductEditDialog({ product, categories, open, onClose, onSave, isLoadi
     }
   }, [product, open]);
 
+  // Greek to Latin transliteration map
+  const greekToLatin: Record<string, string> = {
+    'α': 'a', 'ά': 'a', 'β': 'v', 'γ': 'g', 'δ': 'd', 'ε': 'e', 'έ': 'e',
+    'ζ': 'z', 'η': 'i', 'ή': 'i', 'θ': 'th', 'ι': 'i', 'ί': 'i', 'ϊ': 'i',
+    'κ': 'k', 'λ': 'l', 'μ': 'm', 'ν': 'n', 'ξ': 'x', 'ο': 'o', 'ό': 'o',
+    'π': 'p', 'ρ': 'r', 'σ': 's', 'ς': 's', 'τ': 't', 'υ': 'y', 'ύ': 'y',
+    'ϋ': 'y', 'φ': 'f', 'χ': 'ch', 'ψ': 'ps', 'ω': 'o', 'ώ': 'o',
+    'Α': 'A', 'Ά': 'A', 'Β': 'V', 'Γ': 'G', 'Δ': 'D', 'Ε': 'E', 'Έ': 'E',
+    'Ζ': 'Z', 'Η': 'I', 'Ή': 'I', 'Θ': 'Th', 'Ι': 'I', 'Ί': 'I', 'Ϊ': 'I',
+    'Κ': 'K', 'Λ': 'L', 'Μ': 'M', 'Ν': 'N', 'Ξ': 'X', 'Ο': 'O', 'Ό': 'O',
+    'Π': 'P', 'Ρ': 'R', 'Σ': 'S', 'Τ': 'T', 'Υ': 'Y', 'Ύ': 'Y', 'Ϋ': 'Y',
+    'Φ': 'F', 'Χ': 'Ch', 'Ψ': 'Ps', 'Ω': 'O', 'Ώ': 'O'
+  };
+
+  const transliterateGreek = (text: string): string => {
+    return text.split('').map(char => greekToLatin[char] || char).join('');
+  };
+
+  const generateSlug = (text: string): string => {
+    const transliterated = transliterateGreek(text);
+    return transliterated
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const now = new Date().toISOString();
-    const slug = formData.slug || formData.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '';
+    
+    // Generate slug: prefer English name, fallback to Greek with transliteration
+    let slug = formData.slug;
+    if (!slug || slug.trim() === '') {
+      if (formData.nameEn && formData.nameEn.trim() !== '') {
+        slug = generateSlug(formData.nameEn);
+      } else if (formData.name) {
+        slug = generateSlug(formData.name);
+      }
+    }
+    
+    // Validate slug
+    if (!slug || slug.trim() === '') {
+      toast.error('Το slug δεν μπορεί να είναι κενό. Παρακαλώ συμπληρώστε το όνομα (EN) ή το slug.');
+      return;
+    }
     
     // Ensure all required fields are present
     const completeProduct: Product = {
@@ -600,6 +643,9 @@ function ProductEditDialog({ product, categories, open, onClose, onSave, isLoadi
                 onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                 placeholder="epiplo-963"
               />
+              <p className="text-xs text-muted-foreground">
+                URL identifier (e.g., epiplo-963). Auto-generated from English name if empty.
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Κατηγορία</Label>

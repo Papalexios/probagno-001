@@ -65,6 +65,7 @@ const translations: Translations = {
   
   // Product Detail
   'product.addToCart': { el: 'Προσθήκη στο Καλάθι', en: 'Add to Cart' },
+  'product.addedToCart': { el: 'προστέθηκε στο καλάθι', en: 'added to cart' },
   'product.inStock': { el: 'Διαθέσιμο', en: 'In Stock' },
   'product.outOfStock': { el: 'Μη Διαθέσιμο', en: 'Out of Stock' },
   'product.dimensions': { el: 'Διαστάσεις', en: 'Dimensions' },
@@ -76,12 +77,20 @@ const translations: Translations = {
   'product.relatedProducts': { el: 'Σχετικά Προϊόντα', en: 'Related Products' },
   'product.description': { el: 'Περιγραφή', en: 'Description' },
   'product.selectDimension': { el: 'Επιλέξτε διάσταση', en: 'Select dimension' },
+  'product.selectDimensions': { el: 'Επιλέξτε διαστάσεις', en: 'Select Dimensions' },
+  'product.availableColors': { el: 'Διαθέσιμα Χρώματα', en: 'Available Colors' },
   'product.quantity': { el: 'Ποσότητα', en: 'Quantity' },
   'product.freeShipping': { el: 'Δωρεάν αποστολή', en: 'Free shipping' },
   'product.warranty': { el: 'Εγγύηση 2 ετών', en: '2 year warranty' },
   'product.returns': { el: 'Εύκολες επιστροφές', en: 'Easy returns' },
   'product.shippingInfo': { el: 'Πληροφορίες Αποστολής', en: 'Shipping Info' },
   'product.shippingText': { el: 'Δωρεάν αποστολή σε όλη την Ελλάδα για παραγγελίες άνω των 500€. Παράδοση εντός 5-10 εργάσιμων ημερών.', en: 'Free shipping throughout Greece for orders over €500. Delivery within 5-10 business days.' },
+  'product.shippingInfo1': { el: 'Δωρεάν αποστολή σε όλη την Ελλάδα για παραγγελίες άνω των €500.', en: 'Free shipping throughout Greece for orders over €500.' },
+  'product.shippingInfo2': { el: 'Χρόνος παράδοσης: 5-10 εργάσιμες ημέρες.', en: 'Delivery time: 5-10 business days.' },
+  'product.shippingInfo3': { el: 'Για ειδικές παραγγελίες ή κατασκευές σε ειδικές διαστάσεις επικοινωνήστε μαζί μας.', en: 'For special orders or custom dimensions, please contact us.' },
+  'product.home': { el: 'Αρχική', en: 'Home' },
+  'product.notFound': { el: 'Το προϊόν δεν βρέθηκε', en: 'Product not found' },
+  'product.backToProducts': { el: 'Επιστροφή στα Προϊόντα', en: 'Back to Products' },
   
   // Categories
   'category.all': { el: 'Όλα', en: 'All' },
